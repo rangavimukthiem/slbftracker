@@ -1,0 +1,21 @@
+{
+  "name": "slbftracker",
+  "version": "1.0.0",
+  "description": "Single page SLBFE foreign employment agency registry search app.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "import": "node server.js --import"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.0",
+    "express": "^5.1.0",
+    "mysql2": "^3.14.2",
+    "multer": "^2.0.1",
+    "read-excel-file": "^9.3.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

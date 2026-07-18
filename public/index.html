@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SLBF Agency Tracker</title>
+    <link rel="stylesheet" href="/app.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <img src="/assets/logo.png" alt="SLBF Tracker" class="brand-logo">
+          <div>
+            <h1>SLBF Agency Tracker</h1>
+            <p id="lastUpdate">Last update pending</p>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="defaultImportBtn" class="icon-button secondary" type="button" title="Import bundled workbook">
+            <span aria-hidden="true">&#8635;</span>
+            <span>Import</span>
+          </button>
+          <label class="icon-button" for="registryFile" title="Upload Excel registry">
+            <span aria-hidden="true">&#8593;</span>
+            <span>Upload</span>
+          </label>
+          <input id="registryFile" type="file" accept=".xlsx">
+        </div>
+      </header>
+
+      <section class="stats" aria-label="Registry summary">
+        <div>
+          <span id="totalAgencies">0</span>
+          <p>Agencies</p>
+        </div>
+        <div>
+          <span id="expiringSoon">0</span>
+          <p>Expiring soon</p>
+        </div>
+        <div>
+          <span id="expiredAgencies">0</span>
+          <p>Expired</p>
+        </div>
+      </section>
+
+      <section class="search-strip" aria-label="Search">
+        <div class="search-box">
+          <span aria-hidden="true">&#8981;</span>
+          <input id="searchInput" type="search" autocomplete="off" placeholder="Search by agency, license, address, phone, or email">
+        </div>
+        <p id="uploadStatus" class="status-line" role="status"></p>
+      </section>
+
+      <section class="workspace">
+        <div class="result-panel">
+          <div class="panel-head">
+            <h2>Results</h2>
+            <span id="resultCount">0 found</span>
+          </div>
+          <div id="results" class="results" aria-live="polite"></div>
+        </div>
+
+        <article id="detail" class="detail-panel" aria-live="polite">
+          <div class="empty-detail">
+            <h2>Select an agency</h2>
+            <p>Details will appear here.</p>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>
