@@ -5,7 +5,6 @@ const path = require("path");
 const dotenv = require("dotenv");
 const express = require("express");
 const mysql = require("mysql2/promise");
-const multer = require("multer");
 const readXlsxFile = require("read-excel-file/node");
 
 const ROOT_DIR = __dirname;
@@ -14,7 +13,6 @@ const ENV_PATH = path.join(ROOT_DIR, ".env");
 dotenv.config({ path: ENV_PATH, quiet: true });
 
 const PORT = Number(process.env.PORT || 3000);
-const UPLOAD_DIR = path.resolve(ROOT_DIR, process.env.UPLOAD_DIR || "data/uploads");
 const DEFAULT_IMPORT_FILE = path.resolve(
   ROOT_DIR,
   process.env.DEFAULT_IMPORT_FILE || "SLBF registry.xlsx"
@@ -47,8 +45,6 @@ const SELECT_COLUMNS = [
   COL.createdAt
 ].join(", ");
 
-ensureDir(UPLOAD_DIR);
-
 const pool = mysql.createPool({
   host: process.env.MYSQL_HOST || "localhost",
   port: Number(process.env.MYSQL_PORT || 3306),
@@ -59,10 +55,6 @@ const pool = mysql.createPool({
   connectionLimit: Number(process.env.MYSQL_CONNECTION_LIMIT || 10),
   queueLimit: 0
 });
-
-function ensureDir(dirPath) {
-  fs.mkdirSync(dirPath, { recursive: true });
-}
 
 function escapeIdentifier(value) {
   const identifier = String(value || "");
@@ -458,32 +450,6 @@ async function importWorkbook(filePath, originalName = path.basename(filePath)) 
   return result;
 }
 
-function safeFileName(filename) {
-  const parsed = path.parse(filename || "registry.xlsx");
-  const base = parsed.name.replace(/[^a-z0-9._-]+/gi, "_").slice(0, 90) || "registry";
-  const ext = parsed.ext.toLowerCase() || ".xlsx";
-  return `${Date.now()}-${base}${ext}`;
-}
-
-const upload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, callback) => callback(null, UPLOAD_DIR),
-    filename: (req, file, callback) => callback(null, safeFileName(file.originalname))
-  }),
-  fileFilter: (req, file, callback) => {
-    const allowed = new Set([".xlsx"]);
-    const ext = path.extname(file.originalname || "").toLowerCase();
-    if (!allowed.has(ext)) {
-      callback(new Error("Please upload an .xlsx workbook."));
-      return;
-    }
-    callback(null, true);
-  },
-  limits: {
-    fileSize: Number(process.env.MAX_UPLOAD_MB || 20) * 1024 * 1024
-  }
-});
-
 function asyncHandler(handler) {
   return (req, res, next) => {
     Promise.resolve(handler(req, res, next)).catch(next);
@@ -584,8 +550,7 @@ async function getStatus() {
       filename: process.env.LAST_IMPORT_FILENAME || "",
       file_hash: process.env.LAST_IMPORT_FILE_HASH || "",
       imported_at: process.env.LAST_IMPORT_TIMESTAMP || ""
-    },
-    defaultImportAvailable: fs.existsSync(DEFAULT_IMPORT_FILE)
+    }
   };
 }
 
@@ -700,36 +665,6 @@ async function startServer() {
         return;
       }
       res.json(decorateAgency(row));
-    })
-  );
-
-  app.post(
-    "/api/import",
-    upload.single("registry"),
-    asyncHandler(async (req, res) => {
-      if (!req.file) {
-        res.status(400).json({ error: "No registry file uploaded." });
-        return;
-      }
-
-      const result = await importWorkbook(req.file.path, req.file.originalname);
-      res.json({ ok: true, result, status: await getStatus() });
-    })
-  );
-
-  app.post(
-    "/api/import/default",
-    asyncHandler(async (req, res) => {
-      if (!fs.existsSync(DEFAULT_IMPORT_FILE)) {
-        res.status(404).json({ error: "Default registry workbook was not found." });
-        return;
-      }
-
-      const result = await importWorkbook(
-        DEFAULT_IMPORT_FILE,
-        path.basename(DEFAULT_IMPORT_FILE)
-      );
-      res.json({ ok: true, result, status: await getStatus() });
     })
   );
 

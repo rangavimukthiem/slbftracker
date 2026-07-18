@@ -10,9 +10,7 @@ const els = {
   results: document.querySelector("#results"),
   resultCount: document.querySelector("#resultCount"),
   detail: document.querySelector("#detail"),
-  registryFile: document.querySelector("#registryFile"),
-  uploadStatus: document.querySelector("#uploadStatus"),
-  defaultImportBtn: document.querySelector("#defaultImportBtn"),
+  appStatus: document.querySelector("#appStatus"),
   totalAgencies: document.querySelector("#totalAgencies"),
   expiringSoon: document.querySelector("#expiringSoon"),
   expiredAgencies: document.querySelector("#expiredAgencies"),
@@ -114,12 +112,11 @@ async function loadStatus() {
   setText(els.expiringSoon, status.expiringSoonAgencies.toLocaleString());
   setText(els.expiredAgencies, status.expiredAgencies.toLocaleString());
   setText(els.lastUpdate, formatTimestamp(status.lastImportTimestamp));
-  els.defaultImportBtn.hidden = !status.defaultImportAvailable;
 }
 
 async function searchAgencies(query = state.query) {
   state.query = query.trim();
-  const payload = await fetchJson(`/api/find?q=${encodeURIComponent(state.query)}&limit=50`);
+  const payload = await fetchJson(`/api/agencies?q=${encodeURIComponent(state.query)}&limit=50`);
   state.results = payload.results;
   renderResults();
 }
@@ -256,70 +253,17 @@ async function selectAgency(id) {
   renderDetail(agency);
 }
 
-async function importDefaultWorkbook() {
-  setText(els.uploadStatus, "Importing workbook...");
-  els.defaultImportBtn.disabled = true;
-  try {
-    const payload = await fetchJson("/api/import/default", { method: "POST" });
-    setText(
-      els.uploadStatus,
-      `Imported: ${payload.result.inserted} new, ${payload.result.updated} updated.`
-    );
-    await loadStatus();
-    await searchAgencies();
-  } catch (error) {
-    setText(els.uploadStatus, error.message);
-  } finally {
-    els.defaultImportBtn.disabled = false;
-  }
-}
-
-async function uploadWorkbook(file) {
-  if (!file) {
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("registry", file);
-  setText(els.uploadStatus, "Uploading registry...");
-
-  try {
-    const payload = await fetchJson("/api/import", {
-      method: "POST",
-      body: formData
-    });
-    setText(
-      els.uploadStatus,
-      `Imported: ${payload.result.inserted} new, ${payload.result.updated} updated.`
-    );
-    await loadStatus();
-    await searchAgencies();
-  } catch (error) {
-    setText(els.uploadStatus, error.message);
-  } finally {
-    els.registryFile.value = "";
-  }
-}
-
 els.searchInput.addEventListener("input", () => {
   window.clearTimeout(state.searchTimer);
   state.searchTimer = window.setTimeout(() => {
     searchAgencies(els.searchInput.value).catch((error) => {
-      setText(els.uploadStatus, error.message);
+      setText(els.appStatus, error.message);
     });
   }, 180);
-});
-
-els.registryFile.addEventListener("change", () => {
-  uploadWorkbook(els.registryFile.files[0]);
-});
-
-els.defaultImportBtn.addEventListener("click", () => {
-  importDefaultWorkbook();
 });
 
 loadStatus()
   .then(() => searchAgencies(""))
   .catch((error) => {
-    setText(els.uploadStatus, error.message);
+    setText(els.appStatus, error.message);
   });

@@ -16,17 +16,6 @@
             <p id="lastUpdate">Last update pending</p>
           </div>
         </div>
-        <div class="actions">
-          <button id="defaultImportBtn" class="icon-button secondary" type="button" title="Import bundled workbook">
-            <span aria-hidden="true">&#8635;</span>
-            <span>Import</span>
-          </button>
-          <label class="icon-button" for="registryFile" title="Upload Excel registry">
-            <span aria-hidden="true">&#8593;</span>
-            <span>Upload</span>
-          </label>
-          <input id="registryFile" type="file" accept=".xlsx">
-        </div>
       </header>
 
       <section class="stats" aria-label="Registry summary">
@@ -49,7 +38,7 @@
           <span aria-hidden="true">&#8981;</span>
           <input id="searchInput" type="search" autocomplete="off" placeholder="Search by agency, license, address, phone, or email">
         </div>
-        <p id="uploadStatus" class="status-line" role="status"></p>
+        <p id="appStatus" class="status-line" role="status"></p>
       </section>
 
       <section class="workspace">

@@ -4,12 +4,10 @@ Single page search app for the Sri Lanka Bureau of Foreign Employment agency reg
 
 ## Features
 
-- Imports the SLBF Excel registry into the MySQL `slbf_registry` table.
-- Uses license number as the application-level duplicate key, so duplicate agency rows are not inserted.
-- Updates existing rows when the Excel row changes.
-- Maps Excel columns to `name`, `license_no`, `address`, `telephone`, `fax`, `email`, `valid_till`, and `reference`.
-- Writes `LAST_IMPORT_TIMESTAMP`, `LAST_IMPORT_FILE_HASH`, and `LAST_IMPORT_FILENAME` to `.env` after each successful import.
 - Serves a single page search interface from `public/`.
+- Searches agency name, license number, address, telephone, and email.
+- Shows total agency count, expired agencies, and agencies expiring soon.
+- Includes an optional command line Excel import for maintenance.
 
 ## Project Structure
 
@@ -27,8 +25,6 @@ slbftracker/
 |-- .gitignore
 `-- README.md
 ```
-
-The app creates `data/uploads/` at runtime for uploaded Excel files.
 
 ## Setup
 
@@ -51,10 +47,9 @@ MYSQL_TABLE="slbf_registry"
 DB_FIELD_MAX_LENGTH=120
 ```
 
-Then run:
+If your database is already populated, start the web app:
 
 ```bash
-npm run import -- "SLBF registry.xlsx"
 npm start
 ```
 
@@ -67,8 +62,6 @@ Run a command line import:
 ```bash
 npm run import -- "SLBF registry.xlsx"
 ```
-
-Or upload a new `.xlsx` workbook from the web page. The upload endpoint expects the file field name `registry`.
 
 To import the bundled workbook automatically on an empty database, set this in `.env`:
 
@@ -118,7 +111,7 @@ ALTER TABLE slbf_registry
 
 `GET /api/status`
 
-Returns total agency count, expired count, expiring soon count, and latest import metadata.
+Returns total agency count, expired count, expiring soon count, and latest import metadata when available.
 
 `GET /api/agencies?q=term&limit=50`
 
@@ -128,14 +121,6 @@ Searches agency name, license number, address, telephone, and email.
 
 Returns one full agency record.
 
-`POST /api/import`
-
-Uploads and imports an Excel workbook.
-
-`POST /api/import/default`
-
-Imports the local workbook configured by `DEFAULT_IMPORT_FILE`.
-
 ## Deployment Note
 
-The upload and import endpoints mutate the database and `.env`. For a public server, protect those endpoints with your normal admin authentication or disable them after the first import.
+The web API is read-only. Use your database tools or the optional command line import when registry data needs maintenance.
